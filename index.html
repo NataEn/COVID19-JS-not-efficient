@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="./style.css" />
+    <title>Document</title>
+  </head>
+  <body>
+    <h1>Covid-19 World Data</h1>
+    <div id="main">
+      <div id="content">
+        <div id="chart-container" class="">
+          <canvas id="covid-chart"></canvas>
+        </div>
+        <!-- <div id="chart-spinner" class="">Loading...</div> -->
+        <div id="country-data-container">
+          <div id="country-data" class="selected-country-data"></div>
+        </div>
+        <div id="continents">
+          <button data-continent="Asia">Asia</button>
+          <button data-continent="Africa">Africa</button>
+          <button data-continent="Europe">Europe</button>
+          <button data-continent="Americas">Americas</button>
+          <button data-continent="World">World</button>
+        </div>
+        <div id="covid-params">
+          <button data-param="confirmed">Confirmed</button>
+          <button data-param="deaths">Deaths</button>
+          <button data-param="recovered">Recovered</button>
+          <button data-param="critical">Critical</button>
+        </div>
+      </div>
+      <div id="control-panel">
+        <div id="covid-params"></div>
+        <div id="continents"></div>
+        <div id="countries">
+          <!-- <div id="buttons-spinner" class="">Loading...</div> -->
+        </div>
+      </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+    <script src="./js.js"></script>
+  </body>
+</html>
