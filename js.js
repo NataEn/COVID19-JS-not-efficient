@@ -1,7 +1,7 @@
 const FLAGS_URL = `https://www.countryflags.io/`;
 const COVID_URL = "https://corona-api.com/countries";
 const COUNTRIES_URL = "https://restcountries.herokuapp.com/api/v1/";
-const PROXY = "https://api.codetabs.com/v1/proxy/?quest=";
+const PROXY_URL = "https://api.codetabs.com/v1/proxy/?quest=";
 // const proxy = `https://cors-anywhere.herokuapp.com/`;
 
 const app_state = {
@@ -9,16 +9,18 @@ const app_state = {
   param: "confirmed",
   chart: null,
 };
+let covidInfoMap = {};
+const worldCountries = [];
 
 initiateApp();
 
 async function initiateApp() {
-  let covid_data = await fetchCovidData();
+  const covid_data = await fetchCovidData();
 
-  let countries_data = await fetchCountriesDataFromProxy();
-  let covidInfoMap = arrangeInfo(covid_data, countries_data);
+  const countries_data = await fetchCountriesDataFromProxy();
+  covidInfoMap = arrangeInfo(covid_data, countries_data);
 
-  let data_presentation = prepareForPresentation(
+  const data_presentation = prepareForPresentation(
     covidInfoMap,
     "World",
     "confirmed"
@@ -46,11 +48,6 @@ async function initiateApp() {
 //// REFRESHING DATA UPON EVENTS
 
 async function refreshDataUpdateChart() {
-  let covid_data = await fetchCovidData();
-
-  let countries_data = await fetchCountriesDataFromProxy();
-  let covidInfoMap = arrangeInfo(covid_data, countries_data);
-
   let data_presentation = prepareForPresentation(
     covidInfoMap,
     app_state.region,
@@ -66,8 +63,9 @@ async function refreshDataUpdateChart() {
 }
 
 async function refreshContinentInfo(region) {
-  let countries_data = await fetchCountriesData();
-  let countries = getCountriesForContinentFromData(countries_data, region);
+  debugger;
+
+  let countries = getCountriesForContinentFromData(region);
   const countriesButtonsElement = document.querySelector("#countries");
   generateAttachButtons(countries, countriesButtonsElement);
 }
@@ -144,46 +142,58 @@ function arrangeInfo(covid_info, countries_info) {
   for (const country of covid_info) {
     worldInfoMap[country.name] = country;
   }
-
   for (const country of countries_info) {
     const key = country.name.common;
     const covid_country_data = worldInfoMap[key];
 
-    if (!info[country.region]) info[country.region] = {};
+    worldCountries.push(key);
+    const region = country.region || key;
+    if (!info[country.region]) {
+      info[region] = {};
+      console.log("region", region);
+    }
     if (covid_country_data) {
-      info[country.region][key] = covid_country_data;
+      info[region][key] = covid_country_data;
     }
   }
   return info;
 }
 //// CHART DATA AND ELEMENT
+function addCountryData(continent, covid_param) {
+  const chartLabels = [];
+  const chartValues = [];
+  for (const country_name in continent) {
+    let country = continent[country_name];
+    if (country.latest_data && country.latest_data[covid_param]) {
+      chartLabels.push(country.name);
+      chartValues.push(country.latest_data[covid_param]);
+    } else {
+      console.log("missing data", country, covid_param);
+    }
+  }
+  return {
+    chartLabels,
+    chartValues,
+  };
+}
 function prepareForPresentation(covidInfoMap, region, covid_param) {
-  let title = `${covid_param} in ${region}`;
-  let labels = [];
-  let values = [];
+  const title = `${covid_param} in ${region}`;
+  const labels = [];
+  const values = [];
   if (region === "World") {
     for (const continent in covidInfoMap) {
-      for (const country_name in covidInfoMap[continent]) {
-        let country = covidInfoMap[continent][country_name];
-        if (country.latest_data && country.latest_data[covid_param]) {
-          labels.push(country.name);
-          values.push(country.latest_data[covid_param]);
-        } else {
-          console.log("missing data", country, covid_param);
-        }
-      }
+      const { chartLabels, chartValues } = addCountryData(
+        covidInfoMap[continent],
+        covid_param
+      );
+      labels.push(...chartLabels);
+      values.push(...chartValues);
     }
   } else {
-    let continent = covidInfoMap[region];
-    for (const country_name in continent) {
-      let country = continent[country_name];
-      if (country.latest_data && country.latest_data[covid_param]) {
-        labels.push(country.name);
-        values.push(country.latest_data[covid_param]);
-      } else {
-        console.log("missing data", country, covid_param);
-      }
-    }
+    const continent = covidInfoMap[region];
+    const { chartLabels, chartValues } = addCountryData(continent, covid_param);
+    labels.push(...chartLabels);
+    values.push(...chartValues);
   }
 
   return {
@@ -235,16 +245,13 @@ function updateChart(chart_instance, title, labels, values) {
   chart.update();
 }
 //// CREATING DYNAMIC BUTTONS
-function getCountriesForContinentFromData(countries_data, region) {
-  const countries = [];
-
-  countries_data.forEach((country) => {
-    if (region === "World" || country.region === region) {
-      countries.push(country.name.common);
-    }
-  });
-
-  return countries;
+function getCountriesForContinentFromData(region) {
+  if (region === "World" || country.region === region) {
+    //iterate over
+    countries.push(country.name.common);
+  } else {
+    return Object.values(covidInfoMap[region]);
+  }
 }
 
 function generateAttachButtons(countries, target) {
