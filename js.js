@@ -9,7 +9,7 @@ initiateApp();
 async function initiateApp() {
   let covid_data = await fetchCovidData();
 
-  let countries_data = await fetchCountriesData();
+  let countries_data = await fetchCountriesDataFromProxy();
   let covidInfoMap = arrangeInfo(covid_data, countries_data);
 
   let data_presentation = prepareForPresentation(
@@ -42,7 +42,7 @@ async function initiateApp() {
 async function refreshDataUpdateChart() {
   let covid_data = await fetchCovidData();
 
-  let countries_data = await fetchCountriesData();
+  let countries_data = await fetchCountriesDataFromProxy();
   let covidInfoMap = arrangeInfo(covid_data, countries_data);
 
   let data_presentation = prepareForPresentation(
@@ -69,7 +69,7 @@ async function refreshContinentInfo(region) {
 async function refreshCountryInfo(country_name) {
   let covid_data = await fetchCovidData();
 
-  let countries_data = await fetchCountriesData();
+  let countries_data = await fetchCountriesDataFromProxy();
   let covidInfoMap = arrangeInfo(covid_data, countries_data);
 
   if (!covidInfoMap[app_state.region][country_name]) return;
@@ -108,20 +108,30 @@ async function refreshCountryInfo(country_name) {
   </div>`;
   countryDataElement.innerHTML = html;
 }
-//// FETCHING dATA FROM API
+//// FETCHING DATA FROM API
 async function fetchCovidData() {
-  const response = await fetch("https://corona-api.com/countries");
-  const json = await response.json();
-  return json.data;
+  try {
+    const response = await fetch("https://corona-api.com/countries");
+    const json = await response.json();
+    return json.data;
+  } catch (err) {
+    throw new Error(err);
+  }
 }
 
 async function fetchCountriesDataFromProxy() {
-  const proxy = `https://cors-anywhere.herokuapp.com/`;
-  const countries_api_url = "https://restcountries.herokuapp.com/api/v1/";
-  const response = await fetch(`${proxy}${countries_api_url}`);
-  const json = await response.json();
-
-  return json.data;
+  try {
+    // const proxy = `https://cors-anywhere.herokuapp.com/`;
+    const proxy = "https://api.codetabs.com/v1/proxy/?quest=";
+    const countries_api_url = "https://restcountries.herokuapp.com/api/v1/";
+    const json = await fetch(`${proxy}${countries_api_url}`).then((res) =>
+      res.json()
+    );
+    console.log(json.data);
+    return json;
+  } catch (err) {
+    throw new Error(err);
+  }
 }
 
 async function fetchCountriesData() {
