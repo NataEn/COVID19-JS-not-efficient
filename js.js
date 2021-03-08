@@ -1,3 +1,9 @@
+const FLAGS_URL = `https://www.countryflags.io/`;
+const COVID_URL = "https://corona-api.com/countries";
+const COUNTRIES_URL = "https://restcountries.herokuapp.com/api/v1/";
+const PROXY = "https://api.codetabs.com/v1/proxy/?quest=";
+// const proxy = `https://cors-anywhere.herokuapp.com/`;
+
 const app_state = {
   region: "World",
   param: "confirmed",
@@ -111,7 +117,7 @@ async function refreshCountryInfo(country_name) {
 //// FETCHING DATA FROM API
 async function fetchCovidData() {
   try {
-    const response = await fetch("https://corona-api.com/countries");
+    const response = await fetch(COVID_URL);
     const json = await response.json();
     return json.data;
   } catch (err) {
@@ -121,10 +127,7 @@ async function fetchCovidData() {
 
 async function fetchCountriesDataFromProxy() {
   try {
-    // const proxy = `https://cors-anywhere.herokuapp.com/`;
-    const proxy = "https://api.codetabs.com/v1/proxy/?quest=";
-    const countries_api_url = "https://restcountries.herokuapp.com/api/v1/";
-    const json = await fetch(`${proxy}${countries_api_url}`).then((res) =>
+    const json = await fetch(`${PROXY_URL}${COUNTRIES_URL}`).then((res) =>
       res.json()
     );
     console.log(json.data);
@@ -134,12 +137,6 @@ async function fetchCountriesDataFromProxy() {
   }
 }
 
-async function fetchCountriesData() {
-  const response = await fetch("http://localhost:5000/api/countries");
-  const json = await response.json();
-
-  return json.data;
-}
 function arrangeInfo(covid_info, countries_info) {
   const info = {};
 
